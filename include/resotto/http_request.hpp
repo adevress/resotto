@@ -26,19 +26,31 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
+#ifndef RESOTTO_HTTP_REQUEST_HPP
+#define RESOTTO_HTTP_REQUEST_HPP
 
-#include <iostream>
-
-#include <resotto/server.hpp>
+namespace resotto{
 
 
-namespace rest = resotto::server;
+namespace server{
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
+namespace http{
 
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
-}
+
+class request{
+public:
+
+    inline virtual ~request(){};
+
+private:
+};
+
+
+
+} // http
+
+} // server
+
+} // resotto
+
+#endif // HTTP_REQUEST_HPP

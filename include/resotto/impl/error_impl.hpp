@@ -26,19 +26,53 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
+#ifndef RESOTTO_ERROR_IMPL_HPP
+#define RESOTTO_ERROR_IMPL_HPP
 
-#include <iostream>
+#include "../error.hpp"
 
-#include <resotto/server.hpp>
+namespace resotto{
 
+//  error
+inline error::error(){}
 
-namespace rest = resotto::server;
+inline error::~error(){}
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
+// session error
 
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
+inline session_error::session_error(std::string msg) : _msg(msg){}
+
+inline session_error::~session_error(){}
+
+inline const char* session_error::what() const noexcept{
+    return _msg.c_str();
 }
+
+
+
+namespace server{
+
+// http req error
+
+namespace http {
+
+inline request_error::request_error(int code, std::string content) :_code(code), _msg(content){}
+
+
+inline request_error::~request_error(){}
+
+const char* request_error::what() const noexcept{
+    return _msg.c_str();
+}
+
+int request_error::code() const noexcept{
+    return _code;
+}
+
+} // http
+
+} // server
+
+} // resotto
+
+#endif // RESOTTO_ERROR_HPP

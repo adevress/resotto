@@ -26,19 +26,74 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
-
-#include <iostream>
-
-#include <resotto/server.hpp>
+#ifndef RESOTTO_HTTP_REPLY_IMPL_HPP
+#define RESOTTO_HTTP_REPLY_IMPL_HPP
 
 
-namespace rest = resotto::server;
+#include "../http_reply.hpp"
+#include "../logger.hpp"
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
+namespace resotto{
 
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
+
+namespace server{
+
+namespace http{
+
+
+inline reply::reply() : _code(500){}
+
+inline reply::~reply(){}
+
+
+inline void reply::set_code(int code){
+    _code = code;
 }
+
+inline void reply::set_body(std::string content){
+    _body = std::move(content);
+}
+
+
+template<typename Stream>
+void serialize_reply(Stream & s, reply & rep){
+
+    string_view content(boost::get<std::string>(rep._body)), headers;
+
+    constexpr int buffer_size = 4096;
+    char buf [buffer_size];
+    snprintf(buf, buffer_size,
+
+             "HTTP/1.1 %d code" "\r\n"
+             "Content-Length: %lu" "\r\n"
+             "Connection: keep-alive" "\r\n"
+             "\r\n"
+
+             , rep._code
+             , content.size()
+              );
+
+
+    headers = string_view(buf);
+
+    logger(log_level::debug, log_scope::reply, headers);
+
+    logger(log_level::debug, log_scope::reply, "header size ", headers.size());
+    s.send(
+                  network::buffer(headers.data(), headers.size())
+
+                );
+
+    logger(log_level::debug, log_scope::reply, "content size ", content.size());
+    s.send(
+                  network::buffer(content.data(), content.size())
+                );
+}
+
+} // http
+
+} // server
+
+} // resotto
+
+#endif // RESOTTO_HTTP_REPLY_IMPL_HPP

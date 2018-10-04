@@ -31,6 +31,11 @@ file(GLOB RESOTTO_HEADERS_2 "${CMAKE_CURRENT_SOURCE_DIR}/include/resotto/*/*.hpp
 include_directories(SYSTEM ${BOOST_INCLUDE_DIR} )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include/  )
 
+if(NOT DEFINED HADOKEN_INCLUDE_DIRS)
+    set(HADOKEN_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/hadoken/include)
+endif()
+include_directories( ${HADOKEN_INCLUDE_DIRS} )
+
 set(resotto_version_src "${CMAKE_CURRENT_SOURCE_DIR}/src/resotto_demo.cpp")
 add_executable(resotto_demo ${resotto_version_src} )
 target_link_libraries(resotto_demo Boost::boost Boost::system ${CMAKE_THREAD_LIBS_INIT})

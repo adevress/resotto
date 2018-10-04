@@ -29,6 +29,14 @@
 #ifndef RESOTTO_SERVER_CONFIG_HPP
 #define RESOTTO_SERVER_CONFIG_HPP
 
+#include <stdexcept>
+
+#include <hadoken/threading/std_thread_model.hpp>
+
+#include <hadoken/executor/thread_pool_executor.hpp>
+
+#include "resotto_types.hpp"
+
 namespace resotto{
 
 
@@ -38,10 +46,11 @@ namespace config {
 struct std_thread{
 
     using thread_model = int;
+
+    using executor = hadoken::thread_pool_executor;
 };
 
 } // config
-
 
 
 

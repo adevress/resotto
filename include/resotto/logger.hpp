@@ -26,19 +26,67 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
-
-#include <iostream>
-
-#include <resotto/server.hpp>
+#ifndef RESOTTO_LOGGER_HPP
+#define RESOTTO_LOGGER_HPP
 
 
-namespace rest = resotto::server;
+#include <memory>
+#include <bitset>
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
 
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
+#include <hadoken/format/format.hpp>
+#include "server_config.hpp"
+
+namespace resotto {
+
+
+///
+/// \brief Available log level
+///
+enum class log_level : int{
+    error = 0,
+    warning = 1,
+    info = 2,
+    debug = 3,
+    trace = 4
+};
+
+///
+/// log scope
+///
+/// log scope defined the area ( scope ) of
+/// resotto able to log
+///
+///
+
+
+namespace log_scope{
+    using set = std::bitset<64>;
+    using value = int;
+
+    constexpr int access = 1;
+    constexpr int session = 2;
+    constexpr int parser = 3;
+    constexpr int request = 4;
+    constexpr int reply = 5;
 }
+
+
+void set_log_level(log_level level);
+
+void set_log_scope(log_scope::set level);
+
+
+template<typename... Args>
+void logger(log_level level, log_scope::value scope, Args... args);
+
+string_view to_string_view(log_level l);
+
+
+
+} // resotto
+
+
+#include "impl/logger_impl.hpp"
+
+#endif // RESOTTO_LOGGER_HPP

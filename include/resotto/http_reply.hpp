@@ -26,19 +26,60 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
+#ifndef RESOTTO_HTTP_REPLY_HPP
+#define RESOTTO_HTTP_REPLY_HPP
 
-#include <iostream>
+#include <hadoken/utility/variant.hpp>
 
-#include <resotto/server.hpp>
+#include "resotto_types.hpp"
+
+namespace resotto{
+
+namespace server{
+
+template<typename Socket>
+class session_handler;
+
+namespace http{
 
 
-namespace rest = resotto::server;
+class reply{
+public:
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
+    virtual ~reply();
 
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
-}
+    void set_code(int code);
+
+    void set_body(std::string content);
+
+private:
+    reply();
+    reply(const reply &) = delete;
+
+    int _code;
+    hadoken::variant<std::string> _body;
+
+
+    template<typename Socket>
+    friend class ::resotto::server::session_handler;
+    template<typename Stream>
+    friend void serialize_reply(Stream &, reply & rep);
+
+
+};
+
+
+
+template<typename Stream>
+void serialize_reply(Stream &, reply & rep);
+
+} // http
+
+} // server
+
+} // resotto
+
+
+#include "impl/http_reply_impl.hpp"
+
+#endif // HTTP_REPLY_HPP

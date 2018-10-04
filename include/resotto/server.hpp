@@ -32,16 +32,13 @@
 
 #include <memory>
 
-#include "server_config.hpp"
 
+#include "options.hpp"
+#include "server_config.hpp"
 
 namespace resotto {
 
-
-class server_options{
-public:
-
-};
+namespace server {
 
 ///
 /// \brief resotto server
@@ -54,8 +51,9 @@ class server{
 public:
     using config = ServerConfig;
     using thread_model = typename config::thread_model;
+    using request_executor = typename config::executor;
 
-    server(const server_options & opt = server_options());
+    server(options && opt = options());
 
     virtual ~server();
 
@@ -69,7 +67,9 @@ private:
     std::unique_ptr<intern> _pimpl;
 };
 
-}
+} // server
+
+} // resotto
 
 
 #include "impl/server_impl.hpp"

@@ -26,19 +26,27 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
-
-#include <iostream>
-
-#include <resotto/server.hpp>
+#ifndef RESOTTO_OPTIONS_HPP
+#define RESOTTO_OPTIONS_HPP
 
 
-namespace rest = resotto::server;
+#include <memory>
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
+#include "logger.hpp"
 
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
-}
+
+namespace resotto {
+
+
+class options{
+    struct intern;
+public:
+    std::int64_t overcommit_factor = 16;
+
+
+};
+
+
+} // resotto
+
+#endif // RESOTTO_OPTIONS_HPP

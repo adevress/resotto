@@ -26,19 +26,26 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
+#ifndef RESOTTO_TYPES_HPP
+#define RESOTTO_TYPES_HPP
 
-#include <iostream>
+#include <tuple>
 
-#include <resotto/server.hpp>
+#include <hadoken/string/string_view.hpp>
+#include <boost/asio.hpp>
+
+namespace resotto{
+
+// namespace alias
+namespace network = boost::asio;
+
+// type alias
+using string_view = hadoken::string_view;
+using error_code = boost::system::error_code;
+
+using header = std::tuple<string_view, string_view>;
 
 
-namespace rest = resotto::server;
+} // resotto
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
-
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
-}
+#endif // RESOTTO_TYPES_HPP

@@ -26,19 +26,74 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
+#ifndef RESOTTO_ERROR_HPP
+#define RESOTTO_ERROR_HPP
 
-#include <iostream>
+#include <stdexcept>
 
-#include <resotto/server.hpp>
+namespace resotto{
+
+///
+/// \brief base error class
+///
+class error : public std::exception{
+public:
+    error();
+    virtual ~error();
+};
 
 
-namespace rest = resotto::server;
+///
+/// \brief session error
+///
+/// session error will always kill the associated session
+/// and disconnect the client
+///
+class session_error : public error{
+public:
+    session_error(std::string message);
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
+    virtual ~session_error();
 
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
-}
+    const char* what() const noexcept;
+
+private:
+    std::string _msg;
+};
+
+
+namespace server {
+
+namespace http {
+
+///
+/// \brief http request error
+///
+/// an http request error will send back to client
+/// the corresponding error code and content
+///
+class request_error : public error{
+public:
+    request_error(int code, std::string content);
+    virtual ~request_error();
+
+
+    const char* what() const noexcept;
+
+    int code() const noexcept;
+
+private:
+    int _code;
+    std::string _msg;
+};
+
+} // http
+
+
+} // server
+
+} // resotto
+
+#include "impl/error_impl.hpp"
+
+#endif // RESOTTO_ERROR_HPP

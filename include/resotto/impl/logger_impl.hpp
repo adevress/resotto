@@ -26,19 +26,70 @@
  * DEALINGS IN THE SOFTWARE.
 *
 */
+#ifndef RESOTTO_LOGGER_IMPL_HPP
+#define RESOTTO_LOGGER_IMPL_HPP
 
-#include <iostream>
+#include <array>
+#include <bitset>
+#include <mutex>
 
-#include <resotto/server.hpp>
+#include <hadoken/utility/singleton.hpp>
+
+#include "../logger.hpp"
+
+namespace resotto {
+
+namespace impl {
+
+const std::array<string_view, 5> _log_level_str = { "ERROR", "WARNING", "INFO", "DEBUG", "TRACE" };
 
 
-namespace rest = resotto::server;
+struct logger_handler {
+    log_level level = log_level::trace;
+    log_scope::set scope = 0xff;
+};
 
-int main(int, char**){
-    
-    rest::server<resotto::config::std_thread> server;
 
-    resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
-    
+//
+// Meyer's singleton for the logger
+//
+inline logger_handler & get_logger(){
+    hadoken::singleton<logger_handler> state;
+    return state.instance();
 }
+
+} // impl
+
+
+inline string_view to_string_view(log_level l){
+    return impl::_log_level_str.at(int(l));
+}
+
+
+
+inline void set_log_level(log_level level){
+    impl::get_logger().level = level;
+}
+
+inline void set_log_scope(log_scope::set sc){
+    impl::get_logger().scope = sc;
+}
+
+template<typename... Args>
+void logger(log_level level, log_scope::value scope, Args... args){
+
+    static std::mutex log_mut;
+    auto & log = impl::get_logger();
+
+    if(log.level >= level && log.scope[int(scope)]){
+        std::lock_guard<std::mutex> lock(log_mut);
+
+        std::cout << "[" << to_string_view(log.level) << "] " << hadoken::scat(args...) << "\n";
+    }
+}
+
+} // resotto
+
+
+
+#endif // RESOTTO_LOGGER_IMPL_HPP

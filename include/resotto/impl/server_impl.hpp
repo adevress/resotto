@@ -35,34 +35,40 @@
 #include <thread>
 #include <boost/asio.hpp>
 
+#include "session_handler_impl.hpp"
+
 namespace resotto{
 
 namespace network = boost::asio;
 
+namespace server{
+
 template<typename ServerConfig>
 struct server<ServerConfig>::intern{
-    intern(server_options opt) :
+    intern(options opt) :
         _opt(opt),
         _io_service(),
         _acceptor(_io_service),
-        _socket(_io_service),
+        _executors(opt.overcommit_factor * std::thread::hardware_concurrency()),
         _terminate(false){
 
     }
 
-    server_options _opt;
+    options _opt;
 
     network::io_service        _io_service;
     network::ip::tcp::acceptor _acceptor;
-    network::ip::tcp::socket   _socket;
-
-    std::atomic<bool> _terminate;
 
     std::thread _acceptor_thread;
+
+    server<ServerConfig>::request_executor _executors;
+
+
+    std::atomic<bool> _terminate;
 };
 
 template<typename ServerConfig>
-server<ServerConfig>::server(const server_options & opt) : _pimpl(new intern(opt)){
+server<ServerConfig>::server(options && opt) : _pimpl(new intern(std::move(opt))){
 
 }
 
@@ -82,6 +88,7 @@ void server<ServerConfig>::serve(const std::string & address, int port){
     auto & acceptor = _pimpl->_acceptor;
     acceptor.open(endpoint.protocol());
     acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+    acceptor.set_option(boost::asio::ip::tcp::no_delay(true));
     acceptor.bind(endpoint);
     acceptor.listen();
 
@@ -89,10 +96,29 @@ void server<ServerConfig>::serve(const std::string & address, int port){
         auto & self = this->_pimpl;
 
         while(self->_terminate != true){
-            std::cout << " enter accept " << std::endl;
-            self->_acceptor.accept(self->_socket);
-            std::cout << " new accept " << std::endl;
-            self->_socket.close();
+            auto session_ptr
+                    = std::make_shared<session_handler<network::ip::tcp::socket>>(
+                           network::ip::tcp::socket(_pimpl->_io_service),
+                           _pimpl->_opt
+                     );
+
+            error_code err;
+            self->_acceptor.accept(session_ptr->socket(), err);
+
+            if(! err){
+                _pimpl->_executors.execute([session_ptr](){
+                    logger(log_level::debug, log_scope::session, "enter session handler");
+
+                    session_ptr->process();
+
+                    logger(log_level::debug, log_scope::session, "finish session handler");
+                });
+            } else{
+                std::cerr << "Can not accept connection " << err.message() << std::endl;
+            }
+
+
+
         }
     });
 
@@ -101,6 +127,7 @@ void server<ServerConfig>::serve(const std::string & address, int port){
     }
 }
 
+} // server
 
 } // resotto
 
