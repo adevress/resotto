@@ -89,6 +89,7 @@ void server<ServerConfig>::serve(const std::string & address, int port){
     acceptor.open(endpoint.protocol());
     acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     acceptor.set_option(boost::asio::ip::tcp::no_delay(true));
+    acceptor.set_option(boost::asio::ip::v6_only(false));
     acceptor.bind(endpoint);
     acceptor.listen();
 

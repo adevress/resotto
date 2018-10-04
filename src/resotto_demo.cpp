@@ -39,6 +39,6 @@ int main(int, char**){
     rest::server<resotto::config::std_thread> server;
 
     resotto::set_log_level(resotto::log_level::info);
-    server.serve("localhost", 8080);
+    server.serve("::", 8080);
     
 }
